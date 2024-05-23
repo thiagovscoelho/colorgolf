@@ -1,6 +1,7 @@
 let currentColor = [100, 100, 100]; // Initial color (RGB)
 let targetColor = [150, 200, 175]; // Target color (RGB)
 let moveCount = 0;
+let isDailyGame = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     updateColors();
@@ -28,11 +29,44 @@ function makeMove() {
 
 function checkWin() {
     if (JSON.stringify(currentColor) === JSON.stringify(targetColor)) {
-        alert("Congratulations! You've matched the color!");
+        displayWinMessage();
+    }
+}
+
+function displayWinMessage() {
+    const winMessage = document.createElement('div');
+    winMessage.id = 'win-message';
+    winMessage.innerText = 'You won!';
+    
+    const tweetButton = document.createElement('a');
+    tweetButton.className = 'twitter-share-button';
+    tweetButton.innerText = 'Tweet';
+    
+    const tweetText = isDailyGame
+        ? `I won today’s #ColorGolf in ${moveCount} moves! (${new Date().toISOString().split('T')[0]})`
+        : `I won a random #ColorGolf game in ${moveCount} moves!`;
+    
+    tweetButton.setAttribute('href', `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`);
+    
+    winMessage.appendChild(tweetButton);
+    
+    const gameContent = document.getElementById('game-content');
+    const inputSection = document.querySelector('.input-section');
+    gameContent.insertBefore(winMessage, inputSection);
+    
+    // Load Twitter's widgets.js script to render the Tweet button
+    if (typeof twttr !== 'undefined') {
+        twttr.widgets.load();
+    } else {
+        const script = document.createElement('script');
+        script.src = "https://platform.twitter.com/widgets.js";
+        script.async = true;
+        document.body.appendChild(script);
     }
 }
 
 function startDailyGame() {
+    isDailyGame = true;
     const date = new Date();
     const seed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
     targetColor = generateColorFromSeed(seed);
@@ -43,6 +77,7 @@ function startDailyGame() {
 }
 
 function startRandomGame() {
+    isDailyGame = false;
     targetColor = generateRandomColor();
     document.getElementById('game-title').innerText = 'Random Game';
     document.getElementById('game-mode-selection').style.display = 'none';

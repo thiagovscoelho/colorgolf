@@ -77,3 +77,15 @@ h1 {
 button, input {
     font-family: 'Ubuntu Sans', sans-serif;
 }
+
+#win-message {
+    font-size: 2em;
+    color: green;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.twitter-share-button {
+    margin-top: 10px;
+    font-size: 0.8em;
+}
