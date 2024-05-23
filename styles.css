@@ -37,10 +37,13 @@ h1 {
 
 .input-section {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 5px;
     margin-bottom: 20px;
+}
+
+.input-section label {
+    margin: 0 5px;
 }
 
 .input-section input {
