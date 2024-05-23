@@ -11,6 +11,14 @@ body {
     text-align: center;
 }
 
+h1 {
+    margin-bottom: 20px;
+}
+
+#game-mode-selection {
+    margin-bottom: 20px;
+}
+
 .colors {
     display: flex;
     justify-content: space-around;

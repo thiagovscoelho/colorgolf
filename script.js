@@ -30,3 +30,35 @@ function checkWin() {
         alert("Congratulations! You've matched the color!");
     }
 }
+
+function startDailyGame() {
+    const date = new Date();
+    const seed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+    targetColor = generateColorFromSeed(seed);
+    document.getElementById('game-title').innerText = `Daily Game for ${date.toDateString()}`;
+    document.getElementById('game-mode-selection').style.display = 'none';
+    document.getElementById('game-content').style.display = 'block';
+    updateColors();
+}
+
+function startRandomGame() {
+    targetColor = generateRandomColor();
+    document.getElementById('game-title').innerText = 'Random Game';
+    document.getElementById('game-mode-selection').style.display = 'none';
+    document.getElementById('game-content').style.display = 'block';
+    updateColors();
+}
+
+function generateColorFromSeed(seed) {
+    const r = (seed % 256);
+    const g = ((seed >> 8) % 256);
+    const b = ((seed >> 16) % 256);
+    return [r, g, b];
+}
+
+function generateRandomColor() {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    return [r, g, b];
+}
