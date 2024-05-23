@@ -28,15 +28,19 @@ function makeMove() {
     document.getElementById('moves').innerHTML += `<li>${changes.join(', ')}</li>`;
     document.getElementById('move-counter').innerText = `Moves: ${moveCount}`;
     updateColors();
+    //console.log(`Move made: ${currentColor}`);
     checkWin();
 }
 
 function calculateDifference() {
-    return currentColor.reduce((sum, value, index) => sum + Math.abs(value - targetColor[index]), 0);
+    const difference = currentColor.reduce((sum, value, index) => sum + Math.abs(value - targetColor[index]), 0);
+    //console.log(`Difference calculated: ${difference}`);
+    return difference;
 }
 
 function checkWin() {
     const difference = calculateDifference();
+    //console.log(`Checking win condition: Difference = ${difference}, Tolerance = ${tolerance}`);
     if (difference <= tolerance) {
         displayWinMessage(difference);
     }
@@ -103,6 +107,7 @@ function startDailyGame() {
     document.getElementById('game-mode-selection').style.display = 'none';
     document.getElementById('game-content').style.display = 'block';
     updateColors();
+    //console.log(`Daily game started with target color: ${targetColor} and initial color: ${currentColor}`);
 }
 
 function startRandomGame() {
@@ -114,6 +119,7 @@ function startRandomGame() {
     document.getElementById('game-mode-selection').style.display = 'none';
     document.getElementById('game-content').style.display = 'block';
     updateColors();
+    //console.log(`Random game started with target color: ${targetColor} and initial color: ${currentColor}`);
 }
 
 function setTolerance() {
@@ -125,6 +131,7 @@ function setTolerance() {
     } else {
         tolerance = 26;
     }
+    //console.log(`Tolerance set to: ${tolerance}`);
 }
 
 function generateColorFromSeed(seed) {
