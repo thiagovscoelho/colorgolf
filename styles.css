@@ -39,13 +39,21 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 5px;
+    gap: 10px;
     margin-bottom: 20px;
+}
+
+.input-section label {
+    margin-right: 10px;
 }
 
 .input-section input {
     width: 50px;
-    margin-left: 5px;
+    margin-right: 10px;
+}
+
+.input-section button {
+    align-self: center;
 }
 
 #move-counter {
