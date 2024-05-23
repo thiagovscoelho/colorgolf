@@ -1,5 +1,6 @@
 let currentColor = [100, 100, 100]; // Initial color (RGB)
 let targetColor = [150, 200, 175]; // Target color (RGB)
+let moveCount = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
     updateColors();
@@ -11,16 +12,16 @@ function updateColors() {
 }
 
 function makeMove() {
-    const input = document.getElementById('rgb-input').value;
-    const changes = input.match(/[-+]?\d+/g).map(Number);
+    const redChange = parseInt(document.getElementById('red-input').value) || 0;
+    const greenChange = parseInt(document.getElementById('green-input').value) || 0;
+    const blueChange = parseInt(document.getElementById('blue-input').value) || 0;
 
-    if (changes.length !== 3) {
-        alert("Please enter exactly three numbers.");
-        return;
-    }
+    const changes = [redChange, greenChange, blueChange];
 
     currentColor = currentColor.map((value, index) => Math.max(0, Math.min(255, value + changes[index])));
-    document.getElementById('moves').innerHTML += `<li>${input}</li>`;
+    moveCount++;
+    document.getElementById('moves').innerHTML += `<li>${moveCount}: ${changes.join(', ')}</li>`;
+    document.getElementById('move-counter').innerText = `Moves: ${moveCount}`;
     updateColors();
     checkWin();
 }

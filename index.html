@@ -23,9 +23,16 @@
                 <ul id="moves"></ul>
             </div>
             <div class="input-section">
-                <input type="text" id="rgb-input" placeholder="Enter RGB changes (e.g., +30,-60,+73)">
+                <label>Enter changes:</label><br>
+                <label for="red-input">Red</label>
+                <input type="text" id="red-input" placeholder="0"><br>
+                <label for="green-input">Green</label>
+                <input type="text" id="green-input" placeholder="0"><br>
+                <label for="blue-input">Blue</label>
+                <input type="text" id="blue-input" placeholder="0"><br>
                 <button onclick="makeMove()">Make Move</button>
             </div>
+            <div id="move-counter">Moves: 0</div>
         </div>
     </div>
     <script src="script.js"></script>
