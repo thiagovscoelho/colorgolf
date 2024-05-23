@@ -46,8 +46,8 @@ function displayWinMessage() {
     tweetButton.innerText = 'Tweet';
     
     const tweetText = isDailyGame
-        ? `I won today’s #ColorGolf in ${moveCount} moves! (${new Date().toISOString().split('T')[0]}) (used ${hintCount} hints)`
-        : `I won a random #ColorGolf game in ${moveCount} moves! (used ${hintCount} hints)`;
+        ? `I won today’s #ColorGolf in ${moveCount} moves! (${new Date().toISOString().split('T')[0]}) https://thiagovscoelho.github.io/colorgolf/ (used ${hintCount} hints)`
+        : `I won a random #ColorGolf game in ${moveCount} moves! https://thiagovscoelho.github.io/colorgolf/ (used ${hintCount} hints)`;
     
     tweetButton.setAttribute('href', `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`);
     
@@ -87,8 +87,10 @@ function getHint() {
 function startDailyGame() {
     isDailyGame = true;
     const date = new Date();
-    const seed = hashCode(date.toDateString());
-    targetColor = generateColorFromSeed(seed);
+    const seed1 = hashCode(date.toDateString() + "current");
+    const seed2 = hashCode(date.toDateString() + "target");
+    currentColor = generateColorFromSeed(seed1);
+    targetColor = generateColorFromSeed(seed2);
     document.getElementById('game-title').innerText = `Daily Game for ${date.toDateString()}`;
     document.getElementById('game-mode-selection').style.display = 'none';
     document.getElementById('game-content').style.display = 'block';
@@ -97,6 +99,7 @@ function startDailyGame() {
 
 function startRandomGame() {
     isDailyGame = false;
+    currentColor = generateRandomColor();
     targetColor = generateRandomColor();
     document.getElementById('game-title').innerText = 'Random Game';
     document.getElementById('game-mode-selection').style.display = 'none';
