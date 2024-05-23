@@ -5,6 +5,7 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
+    padding: 0 10px; /* Add some padding for small screens */
 }
 
 .game-container {
@@ -17,6 +18,12 @@ h1 {
 
 #game-mode-selection {
     margin-bottom: 20px;
+}
+
+#game-mode-selection p {
+    max-width: 600px; /* Adjust this value as needed */
+    margin: 0 auto;
+    line-height: 1.6; /* Improve readability */
 }
 
 .colors {
@@ -33,6 +40,15 @@ h1 {
 
 .moves-list {
     margin-bottom: 20px;
+    max-height: 30vh; /* Maximum height of 30% of the screen height */
+    overflow-y: auto; /* Scrollbar if content exceeds the maximum height */
+}
+
+#moves {
+    min-height: 2em; /* Minimum height of two lines */
+    list-style-position: inside; /* Ensures list numbers are inside the container */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
 }
 
 .input-section {
