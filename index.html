@@ -20,15 +20,21 @@
                 <div class="color-box target-color"></div>
             </div>
             <div class="moves-list">
-                <ul id="moves"></ul>
+                <ol id="moves"></ol>
             </div>
             <div class="input-section">
-                <label for="red-input">Red:</label>
-                <input type="text" id="red-input" placeholder="0"><br>
-                <label for="green-input">Green:</label>
-                <input type="text" id="green-input" placeholder="0"><br>
-                <label for="blue-input">Blue:</label>
-                <input type="text" id="blue-input" placeholder="0"><br>
+                <div class="input-row">
+                    <label for="red-input">Red:</label>
+                    <input type="text" id="red-input" placeholder="0">
+                </div>
+                <div class="input-row">
+                    <label for="green-input">Green:</label>
+                    <input type="text" id="green-input" placeholder="0">
+                </div>
+                <div class="input-row">
+                    <label for="blue-input">Blue:</label>
+                    <input type="text" id="blue-input" placeholder="0">
+                </div>
                 <button onclick="makeMove()">Make Move</button>
             </div>
             <div id="move-counter">Moves: 0</div>

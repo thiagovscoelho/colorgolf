@@ -20,7 +20,7 @@ function makeMove() {
 
     currentColor = currentColor.map((value, index) => Math.max(0, Math.min(255, value + changes[index])));
     moveCount++;
-    document.getElementById('moves').innerHTML += `<li>${moveCount}: ${changes.join(', ')}</li>`;
+    document.getElementById('moves').innerHTML += `<li>${changes.join(', ')}</li>`;
     document.getElementById('move-counter').innerText = `Moves: ${moveCount}`;
     updateColors();
     checkWin();
@@ -47,19 +47,3 @@ function startRandomGame() {
     document.getElementById('game-title').innerText = 'Random Game';
     document.getElementById('game-mode-selection').style.display = 'none';
     document.getElementById('game-content').style.display = 'block';
-    updateColors();
-}
-
-function generateColorFromSeed(seed) {
-    const r = (seed % 256);
-    const g = ((seed >> 8) % 256);
-    const b = ((seed >> 16) % 256);
-    return [r, g, b];
-}
-
-function generateRandomColor() {
-    const r = Math.floor(Math.random() * 256);
-    const g = Math.floor(Math.random() * 256);
-    const b = Math.floor(Math.random() * 256);
-    return [r, g, b];
-}
