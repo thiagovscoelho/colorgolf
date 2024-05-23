@@ -1,7 +1,9 @@
 let currentColor = [100, 100, 100]; // Initial color (RGB)
 let targetColor = [150, 200, 175]; // Target color (RGB)
 let moveCount = 0;
+let hintCount = 0;
 let isDailyGame = false;
+let hintUsedThisMove = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     updateColors();
@@ -21,6 +23,7 @@ function makeMove() {
 
     currentColor = currentColor.map((value, index) => Math.max(0, Math.min(255, value + changes[index])));
     moveCount++;
+    hintUsedThisMove = false; // Reset hint usage for the new move
     document.getElementById('moves').innerHTML += `<li>${changes.join(', ')}</li>`;
     document.getElementById('move-counter').innerText = `Moves: ${moveCount}`;
     updateColors();
@@ -43,8 +46,8 @@ function displayWinMessage() {
     tweetButton.innerText = 'Tweet';
     
     const tweetText = isDailyGame
-        ? `I won today’s #ColorGolf in ${moveCount} moves! (${new Date().toISOString().split('T')[0]})`
-        : `I won a random #ColorGolf game in ${moveCount} moves!`;
+        ? `I won today’s #ColorGolf in ${moveCount} moves! (${new Date().toISOString().split('T')[0]}) (used ${hintCount} hints)`
+        : `I won a random #ColorGolf game in ${moveCount} moves! (used ${hintCount} hints)`;
     
     tweetButton.setAttribute('href', `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`);
     
@@ -65,10 +68,26 @@ function displayWinMessage() {
     }
 }
 
+function getHint() {
+    if (hintUsedThisMove) return; // Prevent multiple hints in the same move
+
+    const currentHSL = rgbToHsl(...currentColor);
+    const targetHSL = rgbToHsl(...targetColor);
+    
+    const hueHint = currentHSL[0] < targetHSL[0] ? 'increase Hue' : 'decrease Hue';
+    const saturationHint = currentHSL[1] < targetHSL[1] ? 'increase Saturation' : 'decrease Saturation';
+    const lightnessHint = currentHSL[2] < targetHSL[2] ? 'increase Lightness' : 'decrease Lightness';
+    
+    document.getElementById('hint-message').innerText = `${hueHint}, ${saturationHint}, ${lightnessHint}`;
+    hintCount++;
+    hintUsedThisMove = true; // Mark that a hint has been used in this move
+    document.getElementById('hints-used').innerText = `Hints Used: ${hintCount}`;
+}
+
 function startDailyGame() {
     isDailyGame = true;
     const date = new Date();
-    const seed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+    const seed = hashCode(date.toDateString());
     targetColor = generateColorFromSeed(seed);
     document.getElementById('game-title').innerText = `Daily Game for ${date.toDateString()}`;
     document.getElementById('game-mode-selection').style.display = 'none';
@@ -97,4 +116,40 @@ function generateRandomColor() {
     const g = Math.floor(Math.random() * 256);
     const b = Math.floor(Math.random() * 256);
     return [r, g, b];
+}
+
+// Simple hash function
+function hashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+}
+
+// Convert RGB to HSL
+function rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+        h = s = 0;
+    } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return [h, s, l];
 }

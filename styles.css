@@ -30,6 +30,8 @@ h1 {
     display: flex;
     justify-content: space-around;
     margin-bottom: 20px;
+    width: 250px; /* Fixed width to maintain distance between color boxes */
+    margin: 0 auto; /* Center the color boxes container */
 }
 
 .color-box {
@@ -72,6 +74,17 @@ h1 {
 #move-counter {
     margin-top: 10px;
     font-weight: bold;
+}
+
+#hints-used {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+#hint-message {
+    margin-top: 10px;
+    font-size: 1.2em;
+    color: blue;
 }
 
 button, input {
