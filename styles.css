@@ -38,22 +38,23 @@ h1 {
 .input-section {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 10px;
     margin-bottom: 20px;
 }
 
-.input-section label {
+.input-section label, .input-section input {
+    display: inline-block;
     margin-right: 10px;
+}
+
+.input-section label {
+    width: 50px;
+    text-align: right;
 }
 
 .input-section input {
     width: 50px;
-    margin-right: 10px;
-}
-
-.input-section button {
-    align-self: center;
 }
 
 #move-counter {
