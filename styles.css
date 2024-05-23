@@ -37,17 +37,15 @@ h1 {
 
 .input-section {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 5px;
     margin-bottom: 20px;
 }
 
-.input-section label {
-    margin: 0 5px;
-}
-
 .input-section input {
     width: 50px;
+    margin-left: 5px;
 }
 
 #move-counter {
