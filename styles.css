@@ -26,6 +26,10 @@ h1 {
     line-height: 1.6; /* Improve readability */
 }
 
+#tolerance {
+    margin-bottom: 20px;
+}
+
 .colors {
     display: flex;
     justify-content: space-around;

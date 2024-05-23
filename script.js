@@ -4,6 +4,7 @@ let moveCount = 0;
 let hintCount = 0;
 let isDailyGame = false;
 let hintUsedThisMove = false;
+let tolerance = 26; // Default tolerance
 
 document.addEventListener("DOMContentLoaded", () => {
     updateColors();
@@ -30,24 +31,30 @@ function makeMove() {
     checkWin();
 }
 
+function calculateDifference() {
+    return currentColor.reduce((sum, value, index) => sum + Math.abs(value - targetColor[index]), 0);
+}
+
 function checkWin() {
-    if (JSON.stringify(currentColor) === JSON.stringify(targetColor)) {
-        displayWinMessage();
+    const difference = calculateDifference();
+    if (difference <= tolerance) {
+        displayWinMessage(difference);
     }
 }
 
-function displayWinMessage() {
+function displayWinMessage(difference) {
     const winMessage = document.createElement('div');
     winMessage.id = 'win-message';
-    winMessage.innerText = 'You won!';
+    winMessage.innerText = `You won! Difference: ${difference}`;
     
     const tweetButton = document.createElement('a');
     tweetButton.className = 'twitter-share-button';
     tweetButton.innerText = 'Tweet';
     
+    const toleranceText = tolerance === 0 ? 'Hard' : tolerance === 60 ? 'Easy' : 'Default';
     const tweetText = isDailyGame
-        ? `I won today’s #ColorGolf in ${moveCount} moves! (${new Date().toISOString().split('T')[0]}) https://thiagovscoelho.github.io/colorgolf/ (used ${hintCount} hints)`
-        : `I won a random #ColorGolf game in ${moveCount} moves! https://thiagovscoelho.github.io/colorgolf/ (used ${hintCount} hints)`;
+        ? `I won today’s #ColorGolf in ${moveCount} moves with ${toleranceText} tolerance! (${new Date().toISOString().split('T')[0]}) https://thiagovscoelho.github.io/colorgolf/ (used ${hintCount} hints)`
+        : `I won a random #ColorGolf game in ${moveCount} moves with ${toleranceText} tolerance! https://thiagovscoelho.github.io/colorgolf/ (used ${hintCount} hints)`;
     
     tweetButton.setAttribute('href', `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`);
     
@@ -91,6 +98,7 @@ function startDailyGame() {
     const seed2 = hashCode(date.toDateString() + "target");
     currentColor = generateColorFromSeed(seed1);
     targetColor = generateColorFromSeed(seed2);
+    setTolerance();
     document.getElementById('game-title').innerText = `Daily Game for ${date.toDateString()}`;
     document.getElementById('game-mode-selection').style.display = 'none';
     document.getElementById('game-content').style.display = 'block';
@@ -101,10 +109,22 @@ function startRandomGame() {
     isDailyGame = false;
     currentColor = generateRandomColor();
     targetColor = generateRandomColor();
+    setTolerance();
     document.getElementById('game-title').innerText = 'Random Game';
     document.getElementById('game-mode-selection').style.display = 'none';
     document.getElementById('game-content').style.display = 'block';
     updateColors();
+}
+
+function setTolerance() {
+    const toleranceSelect = document.getElementById('tolerance-select').value;
+    if (toleranceSelect === 'hard') {
+        tolerance = 0;
+    } else if (toleranceSelect === 'easy') {
+        tolerance = 60;
+    } else {
+        tolerance = 26;
+    }
 }
 
 function generateColorFromSeed(seed) {
