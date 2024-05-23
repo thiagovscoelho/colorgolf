@@ -47,3 +47,19 @@ function startRandomGame() {
     document.getElementById('game-title').innerText = 'Random Game';
     document.getElementById('game-mode-selection').style.display = 'none';
     document.getElementById('game-content').style.display = 'block';
+    updateColors();
+}
+
+function generateColorFromSeed(seed) {
+    const r = (seed % 256);
+    const g = ((seed >> 8) % 256);
+    const b = ((seed >> 16) % 256);
+    return [r, g, b];
+}
+
+function generateRandomColor() {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    return [r, g, b];
+}
