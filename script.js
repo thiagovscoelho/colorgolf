@@ -5,10 +5,27 @@ let hintCount = 0;
 let isDailyGame = false;
 let hintUsedThisMove = false;
 let tolerance = 26; // Default tolerance
+let isBritish = false;
 
 document.addEventListener("DOMContentLoaded", () => {
+    checkBritish();
     updateColors();
 });
+
+function checkBritish() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('british')) {
+        document.title = "Colour Golf";
+        document.querySelector('h1').innerText = "Colour Golf";
+        isBritish = true;
+
+        // Update the instructions text
+        const instructions = document.querySelector('.instructions');
+        if (instructions) {
+            instructions.innerHTML = instructions.innerHTML.replace(/color/g, 'colour').replace(/Color/g, 'Colour');
+        }
+    }
+}
 
 function updateColors() {
     document.querySelector('.current-color').style.backgroundColor = `rgb(${currentColor.join(',')})`;
@@ -28,19 +45,19 @@ function makeMove() {
     document.getElementById('moves').innerHTML += `<li>${changes.join(', ')}</li>`;
     document.getElementById('move-counter').innerText = `Moves: ${moveCount}`;
     updateColors();
-    //console.log(`Move made: ${currentColor}`);
+    console.log(`Move made: ${currentColor}`);
     checkWin();
 }
 
 function calculateDifference() {
     const difference = currentColor.reduce((sum, value, index) => sum + Math.abs(value - targetColor[index]), 0);
-    //console.log(`Difference calculated: ${difference}`);
+    console.log(`Difference calculated: ${difference}`);
     return difference;
 }
 
 function checkWin() {
     const difference = calculateDifference();
-    //console.log(`Checking win condition: Difference = ${difference}, Tolerance = ${tolerance}`);
+    console.log(`Checking win condition: Difference = ${difference}, Tolerance = ${tolerance}`);
     if (difference <= tolerance) {
         displayWinMessage(difference);
     }
@@ -56,11 +73,12 @@ function displayWinMessage(difference) {
     tweetButton.innerText = 'Tweet';
     
     const toleranceText = tolerance === 0 ? 'Hard' : tolerance === 60 ? 'Easy' : 'Default';
+    const gameTitle = isBritish ? '#ColourGolf' : '#ColorGolf';
     const tweetText = isDailyGame
-        ? `I won today’s #ColorGolf in ${moveCount} moves with ${toleranceText} tolerance! (${new Date().toISOString().split('T')[0]}) (used ${hintCount} hints)`
-        : `I won a random #ColorGolf game in ${moveCount} moves with ${toleranceText} tolerance! (used ${hintCount} hints)`;
+        ? `I won today’s ${gameTitle} in ${moveCount} moves with ${toleranceText} tolerance! (${new Date().toISOString().split('T')[0]}) https://thiagovscoelho.github.io/colorgolf/ (used ${hintCount} hints)`
+        : `I won a random ${gameTitle} game in ${moveCount} moves with ${toleranceText} tolerance! https://thiagovscoelho.github.io/colorgolf/ (used ${hintCount} hints)`;
     
-    tweetButton.setAttribute('href', `https://twitter.com/intent/tweet?text=${(tweetText)}`);
+    tweetButton.setAttribute('href', `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`);
     
     winMessage.appendChild(tweetButton);
     
@@ -107,7 +125,7 @@ function startDailyGame() {
     document.getElementById('game-mode-selection').style.display = 'none';
     document.getElementById('game-content').style.display = 'block';
     updateColors();
-    //console.log(`Daily game started with target color: ${targetColor} and initial color: ${currentColor}`);
+    console.log(`Daily game started with target color: ${targetColor} and initial color: ${currentColor}`);
 }
 
 function startRandomGame() {
@@ -119,7 +137,7 @@ function startRandomGame() {
     document.getElementById('game-mode-selection').style.display = 'none';
     document.getElementById('game-content').style.display = 'block';
     updateColors();
-    //console.log(`Random game started with target color: ${targetColor} and initial color: ${currentColor}`);
+    console.log(`Random game started with target color: ${targetColor} and initial color: ${currentColor}`);
 }
 
 function setTolerance() {
@@ -131,7 +149,7 @@ function setTolerance() {
     } else {
         tolerance = 26;
     }
-    //console.log(`Tolerance set to: ${tolerance}`);
+    console.log(`Tolerance set to: ${tolerance}`);
 }
 
 function generateColorFromSeed(seed) {
