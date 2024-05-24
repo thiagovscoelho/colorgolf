@@ -75,8 +75,8 @@ function displayWinMessage(difference) {
     const toleranceText = tolerance === 0 ? 'Hard' : tolerance === 60 ? 'Easy' : 'Default';
     const gameTitle = isBritish ? '#ColourGolf' : '#ColorGolf';
     const tweetText = isDailyGame
-        ? `I won today’s ${gameTitle} in ${moveCount} moves with ${toleranceText} tolerance! (${new Date().toISOString().split('T')[0]}) https://thiagovscoelho.github.io/colorgolf/ (used ${hintCount} hints)`
-        : `I won a random ${gameTitle} game in ${moveCount} moves with ${toleranceText} tolerance! https://thiagovscoelho.github.io/colorgolf/ (used ${hintCount} hints)`;
+        ? `I won today’s ${gameTitle} in ${moveCount} moves with ${toleranceText} tolerance! (${new Date().toISOString().split('T')[0]}) (used ${hintCount} hints)`
+        : `I won a random ${gameTitle} game in ${moveCount} moves with ${toleranceText} tolerance! (used ${hintCount} hints)`;
     
     tweetButton.setAttribute('href', `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`);
     
