@@ -152,10 +152,12 @@ function setTolerance() {
     console.log(`Tolerance set to: ${tolerance}`);
 }
 
+// Turn any 32-bit signed int into an unsigned one, then extract the bytes
 function generateColorFromSeed(seed) {
-    const r = (seed % 256);
-    const g = ((seed >> 8) % 256);
-    const b = ((seed >> 16) % 256);
+    const u = seed >>> 0;          //  >>> 0  converts to unsigned 32-bit
+    const r =  u         & 0xFF;   // lowest 8 bits
+    const g = (u >>> 8)  & 0xFF;   // next 8 bits
+    const b = (u >>> 16) & 0xFF;   // next 8 bits
     return [r, g, b];
 }
 
