@@ -41,7 +41,9 @@
     .meta small{color:var(--muted)}
 
     .inputs{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px}
-    .inputs label{display:flex; gap:8px; align-items:center; justify-content:space-between; font-size:13px; color:var(--muted)}
+    .inp{display:flex; align-items:center; gap:8px}
+    .inputs label.click-label{color:var(--muted); cursor:pointer; user-select:none; padding:4px 8px; border-radius:8px; border:1px solid rgba(255,255,255,.08)}
+    .inputs label.click-label:active{transform:scale(0.97)}
     .inputs input{width:100%}
 
     ol#moveList{margin:0; padding-left:22px}
@@ -74,13 +76,13 @@
       <div>
         <h2 id="setupHeading" style="margin:4px 0 8px; font-size:18px">Game setup</h2>
         <p id="instructions" style="margin-top:0; line-height:1.6">
-          <strong>Goal:</strong>  Make the left swatch (your “current” color) match the right swatch (the “target”) by typing <strong>RGB deltas</strong> (changes) and hitting <strong>Make Move</strong>. Each move is three positive or negative integers; leaving a box blank counts as 0.
+          <strong>Goal:</strong> Make the left swatch (your “current” color) match the right swatch (the “target”) by typing <strong>RGB deltas</strong> (changes) and hitting <strong>Make Move</strong>. Each move is three positive or negative integers; leaving a box blank counts as 0.
           <br/><br/>
-          <strong>What a move does:</strong>  The game adds your three deltas to the current color, <strong>clamps</strong> each channel to 0–255, logs the triple in the move list, bumps the move counter, and repaints the swatches. After every move it computes the <strong>Manhattan distance in RGB</strong> |Rcur−Rtar| + |Gcur−Gtar| + |Bcur−Btar| (not visible to the player). You win when that sum is ≤ the chosen tolerance.
+          <strong>What a move does:</strong> The game adds your three deltas to the current color, <strong>clamps</strong> each channel to 0–255, logs the triple in the move list, bumps the move counter, and repaints the swatches. After every move it computes the <strong>Manhattan distance in RGB</strong> |Rcur−Rtar| + |Gcur−Gtar| + |Bcur−Btar| (not visible to the player). You win when that sum is ≤ the chosen tolerance.
           <br/><br/>
           <strong>Hints (HSL):</strong> Once per move you can tap <em>Get HSL Hint</em>. It converts both colors to HSL and tells you to increase/decrease Hue, Saturation, Lightness. It tracks Hints Used.
           <br/><br/>
-          UI niceties: A running ordered list records your entered deltas like <code>(+10, -5, 0)</code>.
+          UI niceties: A running ordered list records your entered deltas like <code>(+10, -5, 0)</code>. Tip: tap the <strong>R/G/B</strong> labels to flip the sign of that input (useful in phones where the numeric keyboard has no hyphen-minus).
         </p>
         <div class="card" style="background:#0e111a">
           <div class="setup-row" style="margin-bottom:12px">
@@ -133,9 +135,18 @@
       <div class="grid" style="gap:16px">
         <div class="card">
           <div class="inputs" style="margin-bottom:12px">
-            <label>R <input id="deltaR" type="number" step="1" inputmode="numeric" placeholder="0" /></label>
-            <label>G <input id="deltaG" type="number" step="1" inputmode="numeric" placeholder="0" /></label>
-            <label>B <input id="deltaB" type="number" step="1" inputmode="numeric" placeholder="0" /></label>
+            <div class="inp">
+              <label for="deltaR" class="click-label" data-target="deltaR" title="Tap to flip sign">R</label>
+              <input id="deltaR" type="number" step="1" inputmode="numeric" placeholder="0" />
+            </div>
+            <div class="inp">
+              <label for="deltaG" class="click-label" data-target="deltaG" title="Tap to flip sign">G</label>
+              <input id="deltaG" type="number" step="1" inputmode="numeric" placeholder="0" />
+            </div>
+            <div class="inp">
+              <label for="deltaB" class="click-label" data-target="deltaB" title="Tap to flip sign">B</label>
+              <input id="deltaB" type="number" step="1" inputmode="numeric" placeholder="0" />
+            </div>
           </div>
           <div class="setup-row">
             <button id="moveBtn" class="btn-primary">Make Move</button>
@@ -159,7 +170,7 @@
     </section>
 
     <footer>
-      <span id="footNote">Tip: Press Enter to make a move.</span>
+      <span id="footNote">Tip: Press the R/G/B labels to flip sign. Press Enter to make a move.</span>
     </footer>
   </div>
 
@@ -222,7 +233,7 @@
       switch(max){
         case r: h=(g-b)/d + (g<b?6:0); break;
         case g: h=(b-r)/d + 2; break;
-        case b: h=(r-g)/d + 4; break; // <-- fixed extra parenthesis
+        case b: h=(r-g)/d + 4; break;
       }
       h *= 60;
     }
@@ -352,6 +363,17 @@
     el.deltaR.disabled = el.deltaG.disabled = el.deltaB.disabled = won;
   }
 
+  // Flip sign utility used by label taps
+  function invertInputValue(input){
+    let v = input.value.trim();
+    let n = v === '' ? 0 : parseInt(v,10);
+    if (isNaN(n)) n = 0;
+    n = -n;
+    input.value = String(n);
+    input.focus();
+    // Do not auto-select to avoid fighting mobile keyboards
+  }
+
   function applyMove(){
     if (won) return;
     const dR = parseIntOrZero(el.deltaR.value);
@@ -411,9 +433,31 @@
     render();
   }
 
+  // Ensure X widgets.js is available (official look)
+  function ensureXWidgets(){
+    return new Promise((resolve, reject)=>{
+      if (window.twttr && window.twttr.widgets){
+        return resolve(window.twttr);
+      }
+      let script = document.getElementById('twitter-wjs');
+      if (script){
+        script.addEventListener('load', ()=> resolve(window.twttr));
+        script.addEventListener('error', ()=> reject(new Error('widgets.js failed to load')));
+        return;
+      }
+      script = document.createElement('script');
+      script.id = 'twitter-wjs';
+      script.async = true;
+      script.src = 'https://platform.twitter.com/widgets.js';
+      script.onload = ()=> resolve(window.twttr);
+      script.onerror = ()=> reject(new Error('widgets.js failed to load'));
+      document.head.appendChild(script);
+    });
+  }
+
   function insertTweetButton(){
     const tag = BRITISH ? 'ColourGolf' : 'ColorGolf';
-    const when = (gameType==='daily') ? `today’s (${dateStr})` : 'a random';
+    const when = (gameType==='daily') ? `today's (${dateStr})` : 'a random';
     const text = `I won ${when} ${BRITISH ? '#ColourGolf' : '#ColorGolf'} game in ${moves} moves in ${tolLabel} tolerance! (used ${hintsUsed} hints)`;
 
     // Clear slot and create a container
@@ -458,34 +502,21 @@
     won = false;
   }
 
-  // Ensure X widgets.js is available (official look)
-  function ensureXWidgets(){
-    return new Promise((resolve, reject)=>{
-      if (window.twttr && window.twttr.widgets){
-        return resolve(window.twttr);
-      }
-      let script = document.getElementById('twitter-wjs');
-      if (script){
-        script.addEventListener('load', ()=> resolve(window.twttr));
-        script.addEventListener('error', ()=> reject(new Error('widgets.js failed to load')));
-        return;
-      }
-      script = document.createElement('script');
-      script.id = 'twitter-wjs';
-      script.async = true;
-      script.src = 'https://platform.twitter.com/widgets.js';
-      script.onload = ()=> resolve(window.twttr);
-      script.onerror = ()=> reject(new Error('widgets.js failed to load'));
-      document.head.appendChild(script);
-    });
-  }
-
   // ===== Wire up =====
   el.dailyBtn.addEventListener('click', startDaily);
   el.randomBtn.addEventListener('click', startRandom);
   el.moveBtn.addEventListener('click', applyMove);
   el.hintBtn.addEventListener('click', showHint);
   el.resetBtn.addEventListener('click', restart);
+
+  // Label taps flip sign for mobile/keypad convenience
+  document.querySelectorAll('label.click-label').forEach(lbl=>{
+    lbl.addEventListener('click', (e)=>{
+      const id = lbl.getAttribute('data-target');
+      const target = document.getElementById(id);
+      if (target) invertInputValue(target);
+    });
+  });
 
   // Enter key submits move
   document.addEventListener('keydown', (e)=>{
@@ -515,6 +546,8 @@
     console.assert(parseIntOrZero('')===0 && parseIntOrZero('   ')===0 && parseIntOrZero('-5')===-5 && parseIntOrZero('7')===7, 'parseIntOrZero cases');
     // signFmt
     console.assert(signFmt(3)==='+3' && signFmt(0)==='0' && signFmt(-2)==='-2', 'signFmt formatting');
+    // invertInputValue
+    const tmp = document.createElement('input'); tmp.value = '5'; invertInputValue(tmp); console.assert(tmp.value==='-5','invert positive to negative'); invertInputValue(tmp); console.assert(tmp.value==='5','invert back'); tmp.value=''; invertInputValue(tmp); console.assert(tmp.value==='0','invert blank becomes 0');
     console.groupEnd();
   }
   if (new URLSearchParams(location.search).has('test')) runTests();
