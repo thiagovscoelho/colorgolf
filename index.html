@@ -1,58 +1,525 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Golf</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Sans:wght@100..800&display=swap" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Color Golf</title>
+  <style>
+    :root{
+      --bg:#0b0c10; --panel:#12131a; --muted:#9aa0a6; --text:#e8eaed; --accent:#6ee7ff; --accent-2:#a78bfa;
+      --win:#38ef7d; --warn:#ffb020; --danger:#ff4d4f;
+      --ring: 0 0 0 2px rgba(110,231,255,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background:linear-gradient(180deg,#0b0c10,#0e1117); color:var(--text)}
+    .container{max-width:980px; margin:0 auto; padding:24px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px}
+    h1{font-size: clamp(28px, 4vw, 40px); margin:0; letter-spacing:.3px}
+    .subtitle{color:var(--muted); font-size:14px}
+
+    .card{background:linear-gradient(180deg,#12131a,#101118); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:16px; box-shadow: 0 6px 24px rgba(0,0,0,.25)}
+    .grid{display:grid; gap:16px}
+    .grid.cols-2{grid-template-columns: 1fr}
+    @media(min-width:800px){.grid.cols-2{grid-template-columns: 1fr 1fr}}
+
+    .setup-row{display:flex; flex-wrap:wrap; gap:12px; align-items:center}
+    select, input[type="number"], button{
+      background:#0f1320; color:var(--text); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px 12px; font-size:14px; outline:none; transition:.15s ease;
+    }
+    select:focus, input[type="number"]:focus, button:focus{box-shadow:var(--ring); border-color:#5eead4}
+    button{cursor:pointer; font-weight:600}
+    .btn-primary{background-image: linear-gradient(135deg, #22d3ee, #a78bfa); border:none}
+    .btn-secondary{background:#151a2b}
+    .btn-ghost{background:transparent}
+    button[disabled]{opacity:.6; cursor:not-allowed}
+
+    .swatches{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+    .swatch{border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,.07)}
+    .swatch .chip{height:140px; transition: background-color .2s ease}
+    .swatch .meta{display:flex; justify-content:space-between; align-items:center; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; padding:10px 12px; background:rgba(255,255,255,.03)}
+    .meta small{color:var(--muted)}
+
+    .inputs{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px}
+    .inputs label{display:flex; gap:8px; align-items:center; justify-content:space-between; font-size:13px; color:var(--muted)}
+    .inputs input{width:100%}
+
+    ol#moveList{margin:0; padding-left:22px}
+    .list-card{max-height:220px; overflow:auto}
+
+    .counters{display:flex; gap:16px; flex-wrap:wrap; color:var(--muted)}
+    .counter-pill{background:#0f1320; border:1px solid rgba(255,255,255,.06); padding:6px 10px; border-radius:999px}
+
+    .hint-box{background:rgba(167,139,250,.08); border:1px dashed rgba(167,139,250,.35); padding:10px 12px; border-radius:12px; color:#ddd}
+    .win{color:var(--win); font-weight:700}
+    .hidden{display:none !important}
+
+    footer{margin-top:18px; color:var(--muted); font-size:12px}
+  </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1>Color Golf</h1>
-        <div id="game-mode-selection">
-            <p class="instructions">Welcome to Color Golf! This game tests your RGB color skills. Your goal is to match the target color (on the right) by adjusting the RGB values of the current color (on the left). You write changes to the Red, Green, and Blue values of the color. As usual with RGB color, the values are between 0 and 255. Your changes can be positive or negative. Enter the changes you want to make and see how close you can get to the target color. Try to match the color in as few moves as possible. Choose “Daily Game” to play today’s game, or “Random Game” to play a randomly generated challenge. You can select a tolerance level to make the game easier or harder. In “Default” mode, you win if the total difference between the RGB values is 26 or less. In “Hard” mode, you must match the color exactly. In “Easy” mode, you win if the difference is 60 or less. Have fun!</p>
-            <label for="tolerance-select">Tolerance:</label>
-            <select id="tolerance-select">
-                <option value="default">Default</option>
-                <option value="hard">Hard</option>
-                <option value="easy">Easy</option>
+  <div class="container">
+    <header>
+      <div>
+        <h1 id="title">Color Golf</h1>
+        <div class="subtitle" id="tagline">Make the left color match the right using RGB deltas.</div>
+      </div>
+      <div class="subtitle">
+        <span id="britishBadge" class="hidden">🇬🇧 British mode</span>
+      </div>
+    </header>
+
+    <!-- Instructions / Setup -->
+    <section id="setup" class="card grid cols-2" aria-labelledby="setupHeading">
+      <div>
+        <h2 id="setupHeading" style="margin:4px 0 8px; font-size:18px">Game setup</h2>
+        <p id="instructions" style="margin-top:0; line-height:1.6">
+          Goal: Make the left swatch (your “current” color) match the right swatch (the “target”) by typing <strong>RGB deltas</strong> (changes) and hitting <strong>Make Move</strong>. Each move is three positive or negative integers; leaving a box blank counts as 0.
+          <br/><br/>
+          What a move does: The game adds your three deltas to the current color, <strong>clamps</strong> each channel to 0–255, logs the triple in the move list, bumps the move counter, and repaints the swatches. After every move it computes the <strong>Manhattan distance in RGB</strong> |Rcur−Rtar| + |Gcur−Gtar| + |Bcur−Btar| (not visible to the player). You win when that sum is ≤ the chosen tolerance.
+          <br/><br/>
+          <strong>Hints (HSL):</strong> Once per move you can tap <em>Get HSL Hint</em>. It converts both colors to HSL and tells you to increase/decrease Hue, Saturation, Lightness. It tracks Hints Used.
+          <br/><br/>
+          UI niceties: A running ordered list records your entered deltas like <code>(+10, -5, 0)</code>.
+        </p>
+        <div class="card" style="background:#0e111a">
+          <div class="setup-row" style="margin-bottom:12px">
+            <label for="tolerance" style="min-width:120px">Tolerance</label>
+            <select id="tolerance" aria-label="Select tolerance">
+              <option value="26" selected>Default (26)</option>
+              <option value="60">Easy (60)</option>
+              <option value="0">Hard (0)</option>
             </select>
-            <button class="styled-button" onclick="startDailyGame()">Daily Game</button>
-            <button class="styled-button" onclick="startRandomGame()">Random Game</button>
+          </div>
+          <div class="setup-row">
+            <button id="dailyBtn" class="btn-primary">Daily Game</button>
+            <button id="randomBtn" class="btn-secondary">Random Game</button>
+          </div>
         </div>
-        <div id="game-title"></div>
-        <div id="game-content" style="display: none;">
-            <div class="colors">
-                <div class="color-box current-color"></div>
-                <div class="color-box target-color"></div>
-            </div>
-            <div class="moves-list">
-                <ol id="moves"></ol>
-            </div>
-            <div id="hints-used">Hints Used: 0</div>
-            <div class="input-section">
-                <div class="input-row">
-                    <label for="red-input">Red:</label>
-                    <input type="text" id="red-input" placeholder="0">
-                </div>
-                <div class="input-row">
-                    <label for="green-input">Green:</label>
-                    <input type="text" id="green-input" placeholder="0">
-                </div>
-                <div class="input-row">
-                    <label for="blue-input">Blue:</label>
-                    <input type="text" id="blue-input" placeholder="0">
-                </div>
-                <button class="styled-button" onclick="makeMove()">Make Move</button>
-                <button class="styled-button" id="hint-button" onclick="getHint()">Get HSL Hint</button>
-            </div>
-            <div id="move-counter">Moves: 0</div>
-            <div id="hint-message"></div>
+      </div>
+      <div>
+        <div class="card" style="background:#0e111a">
+          <p style="margin:0 0 8px; color:var(--muted)"><strong>How to play</strong></p>
+          <ul style="margin:0; padding-left:18px; line-height:1.8">
+            <li>Type three deltas for R, G, B. Leave blank for 0.</li>
+            <li>Click <em>Make Move</em>. Channels are clamped to 0–255.</li>
+            <li>Use <em>Get HSL Hint</em> once per move. It increments <em>Hints Used</em>.</li>
+            <li>You win when the hidden RGB Manhattan distance ≤ tolerance.</li>
+            <li>Add <code>?british</code> to the URL for “Colour Golf”.</li>
+          </ul>
         </div>
-    </div>
-    <script src="script.js"></script>
+      </div>
+    </section>
+
+    <!-- Gameplay -->
+    <section id="game" class="grid cols-2 hidden" aria-live="polite">
+      <div class="card">
+        <div class="swatches" aria-label="Color swatches">
+          <div class="swatch" aria-labelledby="curLabel">
+            <div id="curChip" class="chip" role="img" aria-label="Current color"></div>
+            <div class="meta"><span id="curLabel">Current</span><code id="curHex" class="hidden" aria-hidden="true">#000000</code></div>
+          </div>
+          <div class="swatch" aria-labelledby="tarLabel">
+            <div id="tarChip" class="chip" role="img" aria-label="Target color"></div>
+            <div class="meta"><span id="tarLabel">Target</span><code id="tarHex" class="hidden" aria-hidden="true">#000000</code></div>
+          </div>
+        </div>
+        <div class="counters" style="margin-top:12px">
+          <div class="counter-pill" id="movesPill">Moves: <strong id="moves">0</strong></div>
+          <div class="counter-pill">Hints Used: <strong id="hints">0</strong></div>
+          <div class="counter-pill">Tolerance: <strong id="tolLabel">26 (Default)</strong></div>
+        </div>
+      </div>
+      <div class="grid" style="gap:16px">
+        <div class="card">
+          <div class="inputs" style="margin-bottom:12px">
+            <label>R <input id="deltaR" type="number" step="1" inputmode="numeric" placeholder="0" /></label>
+            <label>G <input id="deltaG" type="number" step="1" inputmode="numeric" placeholder="0" /></label>
+            <label>B <input id="deltaB" type="number" step="1" inputmode="numeric" placeholder="0" /></label>
+          </div>
+          <div class="setup-row">
+            <button id="moveBtn" class="btn-primary">Make Move</button>
+            <button id="hintBtn" class="btn-secondary">Get HSL Hint</button>
+            <button id="resetBtn" class="btn-ghost" title="Start over">↺ Restart</button>
+          </div>
+        </div>
+        <div class="card list-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+            <strong>Move log</strong>
+            <small class="subtitle">records your deltas</small>
+          </div>
+          <ol id="moveList"></ol>
+        </div>
+        <div id="hintBox" class="hint-box hidden" role="status"></div>
+        <div id="resultBox" class="card hidden" style="border:1px solid rgba(56,239,125,.5)">
+          <p id="resultText" class="win" style="margin:0 0 10px">You won!</p>
+          <div id="tweetSlot"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span id="footNote">Tip: Press Enter to make a move.</span>
+    </footer>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ===== Utilities =====
+  const $ = sel => document.querySelector(sel);
+  const clamp = (v, min=0, max=255) => Math.max(min, Math.min(max, v|0));
+  const signFmt = n => (n>0?`+${n}`:`${n}`); // includes 0
+  const toHex = (r,g,b) => `#${[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('')}`.toUpperCase();
+  const parseIntOrZero = v => (v==null || String(v).trim()==='' ? 0 : (parseInt(v,10) || 0));
+
+  // FNV-1a 32-bit (signed)
+  function fnv1a32(str){
+    let h = 0x811c9dc5; // offset basis
+    for (let i=0;i<str.length;i++){
+      h ^= str.charCodeAt(i);
+      // h *= 16777619 (using bit ops)
+      h = (h + ((h<<1) + (h<<4) + (h<<7) + (h<<8) + (h<<24))) | 0;
+    }
+    return h|0; // signed
+  }
+  // Mulberry32 PRNG from seed (uint32)
+  function mulberry32(a){
+    return function(){
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), (a | 1));
+      t ^= t + Math.imul(t ^ (t >>> 7), (t | 61));
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+  }
+  function seededColor(seed){
+    // Normalize signed seed to uint32 to avoid negative artifacts
+    const rnd = mulberry32((seed>>>0));
+    return [0,0,0].map(()=> Math.floor(rnd()*256));
+  }
+
+  function randomColor(){
+    if (window.crypto?.getRandomValues){
+      const a = new Uint32Array(3); crypto.getRandomValues(a);
+      return [a[0]%256, a[1]%256, a[2]%256];
+    }
+    return [
+      Math.floor(Math.random()*256),
+      Math.floor(Math.random()*256),
+      Math.floor(Math.random()*256),
+    ];
+  }
+
+  // RGB <-> HSL helpers (H in degrees [0,360), S/L in [0,100])
+  function rgbToHsl(r,g,b){
+    r/=255; g/=255; b/=255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    let h,s,l=(max+min)/2;
+    if (max===min){h=0; s=0;} else {
+      const d=max-min;
+      s = l>0.5 ? d/(2-max-min) : d/(max+min);
+      switch(max){
+        case r: h=(g-b)/d + (g<b?6:0); break;
+        case g: h=(b-r)/d + 2; break;
+        case b: h=(r-g)/d + 4; break; // <-- fixed extra parenthesis
+      }
+      h *= 60;
+    }
+    return [h, s*100, l*100];
+  }
+
+  function directionHint(cur, tar){
+    const [hc,sc,lc] = rgbToHsl(...cur);
+    const [ht,st,lt] = rgbToHsl(...tar);
+    // Compute shortest direction for hue on a circle
+    let dh = ((ht - hc + 540) % 360) - 180; // in (-180, 180]
+    const hueDir = Math.abs(dh) < 1 ? 'keep Hue' : (dh>0 ? 'increase Hue' : 'decrease Hue');
+    const sDir = Math.abs(st - sc) < 0.5 ? 'keep Saturation' : (st>sc ? 'increase Saturation' : 'decrease Saturation');
+    const lDir = Math.abs(lt - lc) < 0.5 ? 'keep Lightness' : (lt>lc ? 'increase Lightness' : 'decrease Lightness');
+    return `${hueDir}, ${sDir}, ${lDir}.`;
+  }
+
+  // Manhattan distance in RGB
+  const manhattan = (a,b) => Math.abs(a[0]-b[0]) + Math.abs(a[1]-b[1]) + Math.abs(a[2]-b[2]);
+
+  // British mode detection
+  const params = new URLSearchParams(location.search);
+  const BRITISH = params.has('british');
+  if (BRITISH){
+    document.title = 'Colour Golf';
+    $('#title').textContent = 'Colour Golf';
+    $('#britishBadge').classList.remove('hidden');
+    $('#tagline').textContent = 'Make the left colour match the right using RGB deltas.';
+    // Swap instruction spelling
+    $('#instructions').innerHTML = $('#instructions').innerHTML
+      .replaceAll('color','colour')
+      .replaceAll('Color','Colour');
+  }
+
+  // ===== State =====
+  let cur = [0,0,0];
+  let tar = [0,0,0];
+  let moves = 0;
+  let hintsUsed = 0;
+  let tol = 26;
+  let tolLabel = 'Default';
+  let gameType = null; // 'daily' | 'random'
+  let dateStr = null; // yyyy-mm-dd
+  let hintLockedForMove = false; // once per move
+  let won = false;
+
+  // ===== DOM refs =====
+  const el = {
+    setup: $('#setup'), game: $('#game'),
+    dailyBtn: $('#dailyBtn'), randomBtn: $('#randomBtn'),
+    tolSel: $('#tolerance'), tolLabel: $('#tolLabel'),
+    curChip: $('#curChip'), tarChip: $('#tarChip'), curHex: $('#curHex'), tarHex: $('#tarHex'),
+    deltaR: $('#deltaR'), deltaG: $('#deltaG'), deltaB: $('#deltaB'),
+    moveBtn: $('#moveBtn'), hintBtn: $('#hintBtn'), resetBtn: $('#resetBtn'),
+    moveList: $('#moveList'), moves: $('#moves'), hints: $('#hints'),
+    hintBox: $('#hintBox'), resultBox: $('#resultBox'), resultText: $('#resultText'), tweetSlot: $('#tweetSlot')
+  };
+
+  function localDateYYYYMMDD(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  }
+
+  function startDaily(){
+    dateStr = localDateYYYYMMDD();
+    const seedCur = fnv1a32(dateStr + ':cur');
+    const seedTar = fnv1a32(dateStr + ':tar');
+    cur = seededColor(seedCur);
+    tar = seededColor(seedTar);
+    gameType = 'daily';
+    beginGame();
+  }
+  function startRandom(){
+    dateStr = localDateYYYYMMDD();
+    cur = randomColor();
+    tar = randomColor();
+    gameType = 'random';
+    beginGame();
+  }
+
+  function beginGame(){
+    // Tolerance label mapping
+    const val = el.tolSel.value;
+    tol = parseInt(val,10);
+    tolLabel = (val==='26') ? 'Default' : (val==='60' ? 'Easy' : 'Hard');
+    el.tolLabel.textContent = `${tol} (${tolLabel})`;
+
+    // Hide setup, show game
+    el.setup.classList.add('hidden');
+    el.game.classList.remove('hidden');
+
+    // Initialize state
+    moves = 0; hintsUsed = 0; hintLockedForMove = false; won = false;
+    el.moveList.innerHTML = '';
+    el.hintBox.classList.add('hidden'); el.hintBox.textContent = '';
+    el.resultBox.classList.add('hidden'); el.tweetSlot.innerHTML = '';
+
+    // IMPORTANT: keep hex codes hidden & off a11y tree during play
+    el.curHex.classList.add('hidden');
+    el.tarHex.classList.add('hidden');
+    el.curHex.setAttribute('aria-hidden','true');
+    el.tarHex.setAttribute('aria-hidden','true');
+
+    render();
+
+    // Focus first input for quick play
+    el.deltaR.focus();
+  }
+
+  function render(){
+    el.curChip.style.backgroundColor = toHex(...cur);
+    el.tarChip.style.backgroundColor = toHex(...tar);
+
+    // Maintain live values (not visible or announced until win)
+    el.curHex.textContent = toHex(...cur);
+    el.tarHex.textContent = toHex(...tar);
+
+    el.moves.textContent = String(moves);
+    el.hints.textContent = String(hintsUsed);
+
+    // Disable controls if won
+    el.moveBtn.disabled = won;
+    el.hintBtn.disabled = won || hintLockedForMove;
+    el.deltaR.disabled = el.deltaG.disabled = el.deltaB.disabled = won;
+  }
+
+  function applyMove(){
+    if (won) return;
+    const dR = parseIntOrZero(el.deltaR.value);
+    const dG = parseIntOrZero(el.deltaG.value);
+    const dB = parseIntOrZero(el.deltaB.value);
+
+    // Ignore pure zero moves so accidental clicks don't waste a move
+    if (dR===0 && dG===0 && dB===0){
+      return; // do not log, do not increment, do not unlock hint
+    }
+
+    // Update current color with clamping
+    const next = [
+      clamp(cur[0] + dR),
+      clamp(cur[1] + dG),
+      clamp(cur[2] + dB)
+    ];
+
+    // Log move
+    const li = document.createElement('li');
+    li.textContent = `(${signFmt(dR)}, ${signFmt(dG)}, ${signFmt(dB)})`;
+    el.moveList.appendChild(li);
+
+    // Commit state
+    cur = next;
+    moves += 1;
+    hintLockedForMove = false; // a real move allows hint again
+
+    // Keep inputs as-is for repeat moves (no clearing)
+
+    // Check win
+    const diff = manhattan(cur, tar);
+    if (diff <= tol){
+      won = true;
+      el.resultText.textContent = `You won! Difference: ${diff}`;
+      el.resultBox.classList.remove('hidden');
+
+      // Reveal hex codes visually AND to screen readers now
+      el.curHex.classList.remove('hidden');
+      el.tarHex.classList.remove('hidden');
+      el.curHex.removeAttribute('aria-hidden');
+      el.tarHex.removeAttribute('aria-hidden');
+
+      insertTweetButton();
+    }
+
+    render();
+  }
+
+  function showHint(){
+    if (won || hintLockedForMove) return;
+    const msg = directionHint(cur, tar);
+    el.hintBox.textContent = msg;
+    el.hintBox.classList.remove('hidden');
+    hintsUsed += 1;
+    hintLockedForMove = true; // once per move
+    render();
+  }
+
+  function insertTweetButton(){
+    const tag = BRITISH ? 'ColourGolf' : 'ColorGolf';
+    const when = (gameType==='daily') ? `today’s (${dateStr})` : 'a random';
+    const text = `I won ${when} ${BRITISH ? '#ColourGolf' : '#ColorGolf'} game in ${moves} moves in ${tolLabel} tolerance! (used ${hintsUsed} hints)`;
+
+    // Clear slot and create a container
+    el.tweetSlot.innerHTML = '';
+    const container = document.createElement('div');
+    el.tweetSlot.appendChild(container);
+
+    // Fallback: a plain Web Intent link that works even if widgets.js is blocked
+    const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&hashtags=${encodeURIComponent(tag)}`;
+    const fallback = document.createElement('a');
+    fallback.href = intent;
+    fallback.target = '_blank';
+    fallback.rel = 'noopener noreferrer';
+    fallback.className = 'twitter-share-button';
+    fallback.textContent = BRITISH ? 'Post on X' : 'Tweet';
+    fallback.setAttribute('data-size','large');
+    container.appendChild(fallback);
+
+    // Try to render the official X button for the proper look
+    ensureXWidgets().then(twttr => {
+      // Replace the fallback with an official button
+      container.innerHTML = '';
+      twttr.widgets.createShareButton(
+        '', // no URL; we only prefill text/hashtags
+        container,
+        {
+          size: 'large',
+          text,
+          hashtags: tag,
+          dnt: true
+        }
+      );
+    }).catch(()=>{
+      // keep fallback anchor as-is
+    });
+  }
+
+  function restart(){
+    // Return to setup so players can change tolerance or mode
+    el.setup.classList.remove('hidden');
+    el.game.classList.add('hidden');
+    won = false;
+  }
+
+  // Ensure X widgets.js is available (official look)
+  function ensureXWidgets(){
+    return new Promise((resolve, reject)=>{
+      if (window.twttr && window.twttr.widgets){
+        return resolve(window.twttr);
+      }
+      let script = document.getElementById('twitter-wjs');
+      if (script){
+        script.addEventListener('load', ()=> resolve(window.twttr));
+        script.addEventListener('error', ()=> reject(new Error('widgets.js failed to load')));
+        return;
+      }
+      script = document.createElement('script');
+      script.id = 'twitter-wjs';
+      script.async = true;
+      script.src = 'https://platform.twitter.com/widgets.js';
+      script.onload = ()=> resolve(window.twttr);
+      script.onerror = ()=> reject(new Error('widgets.js failed to load'));
+      document.head.appendChild(script);
+    });
+  }
+
+  // ===== Wire up =====
+  el.dailyBtn.addEventListener('click', startDaily);
+  el.randomBtn.addEventListener('click', startRandom);
+  el.moveBtn.addEventListener('click', applyMove);
+  el.hintBtn.addEventListener('click', showHint);
+  el.resetBtn.addEventListener('click', restart);
+
+  // Enter key submits move
+  document.addEventListener('keydown', (e)=>{
+    if (e.key==='Enter' && !el.game.classList.contains('hidden')){
+      e.preventDefault();
+      applyMove();
+    }
+  });
+
+  // ===== Lightweight tests (run with ?test in URL) =====
+  function approx(a,b,eps=1e-2){ return Math.abs(a-b) <= eps; }
+  function approxArr(a,b,eps=1e-1){ return a.length===b.length && a.every((v,i)=>approx(v,b[i],eps)); }
+  function runTests(){
+    console.group('%cColor Golf – tests','color: #6ee7ff');
+    // rgbToHsl primary colors
+    console.assert(approxArr(rgbToHsl(255,0,0).map((v,i)=>i?+v.toFixed(1):+v.toFixed(1)), [0,100,50]), 'rgbToHsl red');
+    console.assert(approxArr(rgbToHsl(0,255,0).map(v=>+v.toFixed(1)), [120,100,50]), 'rgbToHsl green');
+    console.assert(approxArr(rgbToHsl(0,0,255).map(v=>+v.toFixed(1)), [240,100,50]), 'rgbToHsl blue');
+    // clamp
+    console.assert(clamp(-10)===0 && clamp(300)===255 && clamp(128)===128, 'clamp bounds');
+    // manhattan
+    console.assert(manhattan([0,0,0],[10,20,30])===60, 'manhattan sum');
+    // seededColor determinism
+    const s = 123456789; const c1 = seededColor(s); const c2 = seededColor(s);
+    console.assert(JSON.stringify(c1)===JSON.stringify(c2), 'seededColor deterministic');
+    // parseIntOrZero
+    console.assert(parseIntOrZero('')===0 && parseIntOrZero('   ')===0 && parseIntOrZero('-5')===-5 && parseIntOrZero('7')===7, 'parseIntOrZero cases');
+    // signFmt
+    console.assert(signFmt(3)==='+3' && signFmt(0)==='0' && signFmt(-2)==='-2', 'signFmt formatting');
+    console.groupEnd();
+  }
+  if (new URLSearchParams(location.search).has('test')) runTests();
+
+})();
+</script>
 </body>
 </html>
