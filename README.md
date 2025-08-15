@@ -1,6 +1,6 @@
 # Color Golf
 
-Make the left color match the right using **RGB deltas**. Type changes for **R / G / B**, clamp happens automatically, and you win when the hidden RGB **Manhattan distance** is within the chosen tolerance.
+A browser game, live [here](https://thiagovscoelho.github.io/colorgolf/). Make the left color match the right using **RGB deltas**. Type changes for **R / G / B**, clamp happens automatically, and you win when the hidden RGB **Manhattan distance** is within the chosen tolerance.
 
 > Add `?british` to the URL for **Colour Golf** 🇬🇧
 > Add `?test` to run lightweight console tests.
